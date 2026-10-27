@@ -13,4 +13,4 @@ server.listen(3000, "127.0.0.1", () => {
 });
 
 // Run the ZFE engine
-console.log("ZFE Engine:", zfeEngine);
+zfeEngine();
