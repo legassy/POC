@@ -1,5 +1,5 @@
 export type TruckData = {
-  id: string;
+  id: number;
   timestamp: string;
   lat: number;
   lon: number;

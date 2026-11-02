@@ -37,14 +37,16 @@ const zfeEngine = () => {
       i < polygonData.length;
       j = i++
     ) {
-      const xi = polygonData[i].lat,
-        yi = polygonData[i].lon;
-      const xj = polygonData[j].lat,
-        yj = polygonData[j].lon;
+      const xi = polygonData[i].lon,
+        yi = polygonData[i].lat;
+      const xj = polygonData[j].lon,
+        yj = polygonData[j].lat;
+
+      const py = point.lat;
+      const px = point.lon;
 
       const intersect =
-        yi > point.lon !== yj > point.lon &&
-        point.lat < ((xj - xi) * (point.lon - yi)) / (yj - yi) + xi;
+        yi > py !== yj > py && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi;
       if (intersect) inside = !inside;
     }
     return inside;
@@ -59,7 +61,7 @@ const zfeEngine = () => {
     }
   });
 
-  return `ZFE Engine is running!`;
+  return pointsInsidePolygon;
 };
 
 export default zfeEngine;
