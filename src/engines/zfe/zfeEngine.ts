@@ -4,26 +4,26 @@ import type {
   TruckData,
 } from "../../types/ZfeEngineType.ts";
 
-import rawPolygonData from "../../data/lyon_polygon.json" with { type: "json" };
-
-// Cast the raw data to the correct types
-const polygonData: GeoPoint[] = rawPolygonData as GeoPoint[];
-// Get the bounding box for the polygon
-const maxlat = Math.max(...polygonData.map((p) => p.lat));
-const minlat = Math.min(...polygonData.map((p) => p.lat));
-const maxlong = Math.max(...polygonData.map((p) => p.lon));
-const minlong = Math.min(...polygonData.map((p) => p.lon));
-
 /**
  * ZFE Engine that checks which truck data points are inside a given polygon.
  * @param props
  * @returns   Points inside the polygon and on the border of the polygon.
  */
-const zfeEngine = (truckData: TruckData[]): PointsInsidePolygon => {
+const zfeEngine = (
+  truckData: TruckData[],
+  polygon: GeoPoint[],
+): PointsInsidePolygon => {
   // Guard to ensure the data is provided
-  if (!truckData) {
+  if (!truckData || !polygon) {
     throw new Error("Polygon data and truck data must be provided.");
   }
+  // Cast the raw data to the correct types
+  const polygonData: GeoPoint[] = polygon as GeoPoint[];
+  // Get the bounding box for the polygon
+  const maxlat = Math.max(...polygonData.map((p) => p.lat));
+  const minlat = Math.min(...polygonData.map((p) => p.lat));
+  const maxlong = Math.max(...polygonData.map((p) => p.lon));
+  const minlong = Math.min(...polygonData.map((p) => p.lon));
 
   const isPointInsideBoundingBox = (point: TruckData): boolean => {
     return (

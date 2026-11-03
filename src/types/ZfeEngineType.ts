@@ -5,7 +5,9 @@ export type TruckData = {
   lon: number;
   expected: string;
 };
-
+export interface TruckWithDistance extends TruckData {
+  distanceToBorderKm: number;
+}
 export type PointsInsidePolygon = {
   inBorder: TruckData[];
   inside: TruckData[];
