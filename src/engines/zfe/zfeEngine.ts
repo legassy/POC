@@ -1,18 +1,29 @@
+import type {
+  GeoPoint,
+  PointsInsidePolygon,
+  TruckData,
+} from "../../types/ZfeEngineType.ts";
+
 import rawPolygonData from "../../data/lyon_polygon.json" with { type: "json" };
-import type { GeoPoint } from "../../types/GeoPoint.ts";
-import rawTruckData from "../../data/truck_gps.json" with { type: "json" };
-import type { TruckData } from "../../types/TruckData.ts";
 
-const zfeEngine = () => {
-  // Cast the raw data to the appropriate types
-  const polygonData = rawPolygonData as unknown as GeoPoint[];
-  const truckData = rawTruckData as unknown as TruckData[];
+// Cast the raw data to the correct types
+const polygonData: GeoPoint[] = rawPolygonData as GeoPoint[];
+// Get the bounding box for the polygon
+const maxlat = Math.max(...polygonData.map((p) => p.lat));
+const minlat = Math.min(...polygonData.map((p) => p.lat));
+const maxlong = Math.max(...polygonData.map((p) => p.lon));
+const minlong = Math.min(...polygonData.map((p) => p.lon));
 
-  // Calculate the bounding box for the polygon
-  const maxlat = Math.max(...polygonData.map((p) => p.lat));
-  const minlat = Math.min(...polygonData.map((p) => p.lat));
-  const maxlong = Math.max(...polygonData.map((p) => p.lon));
-  const minlong = Math.min(...polygonData.map((p) => p.lon));
+/**
+ * ZFE Engine that checks which truck data points are inside a given polygon.
+ * @param props
+ * @returns   Points inside the polygon and on the border of the polygon.
+ */
+const zfeEngine = (truckData: TruckData[]): PointsInsidePolygon => {
+  // Guard to ensure the data is provided
+  if (!truckData) {
+    throw new Error("Polygon data and truck data must be provided.");
+  }
 
   const isPointInsideBoundingBox = (point: TruckData): boolean => {
     return (
@@ -24,7 +35,7 @@ const zfeEngine = () => {
   };
 
   const pointsInsideBoundingBox = truckData.filter(isPointInsideBoundingBox);
-  const pointsInsidePolygon: { inBorder: TruckData[]; inside: TruckData[] } = {
+  const pointsInsidePolygon: PointsInsidePolygon = {
     inBorder: [],
     inside: [],
   };

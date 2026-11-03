@@ -25,7 +25,6 @@ pnpm install
 
 ```bash
 pnpm start
-pnpm dev  # Pour le developpement avec auto refresh (nodemon)
 ```
 
 ## Tests
