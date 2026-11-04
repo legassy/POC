@@ -56,7 +56,17 @@ Convention : **lon = x, lat = y**.
 
 ### Périmètre
 
-<!-- TODO : bounding box, ray casting, polygone fermé, cas du point sur un bord, résultats vs `expected` -->
+**Bounding box**
+
+Pour éviter les calculs inutiles dans le code, j'ai commencé par filtrer les points qui sont uniquement dans la bounding box, grâce aux min et max des abscisses et des ordonnées.
+Les points qui ne sont pas dans la bounding box sont directement ignorés.
+Je ne calcule qu'une seule fois la bounding box au lancement du moteur ZFE.
+
+**Ray casting**
+
+Pour déterminer si le camion est dans une ZFE, on utilise sa position GPS actuelle et on trace un rayon virtuel horizontal vers la droite.
+On compte ensuite le nombre de fois que ce rayon traverse les segments du polygone.
+Si le nombre est pair, le camion est considéré comme extérieur au polygone. À l'inverse, si ce nombre est impair, le camion est dans le polygone.
 
 **Résultat attendu pour les points dans la zone ZFE :**
 
@@ -73,5 +83,6 @@ Plusieurs cas sont pris en compte :
 - un polygone de moins de 3 points n'est pas un polygone
 - la latitude et la longitude sont obligatoirement des nombres (`number`)
 - le cas où les données du polygone et du camion ne sont pas fournies
+- fichier vide
 
 ## Module 2 — Safety
