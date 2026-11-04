@@ -6,19 +6,61 @@ import type {
 
 /**
  * ZFE Engine that checks which truck data points are inside a given polygon.
- * @param props
+ * @param truckData Array of truck data points to be checked.
+ * @param polygon Array of GeoPoints that define the polygon.
  * @returns   Points inside the polygon and on the border of the polygon.
  */
 const zfeEngine = (
-  truckData: TruckData[],
-  polygon: GeoPoint[],
+  truckData?: TruckData[],
+  polygon?: GeoPoint[],
 ): PointsInsidePolygon => {
   // Guard to ensure the data is provided
   if (!truckData || !polygon) {
     throw new Error("Polygon data and truck data must be provided.");
   }
+
+  // Guard to ensure json data is valid
+  if (!Array.isArray(truckData) || !Array.isArray(polygon)) {
+    throw new Error(
+      "Invalid data format. Expected arrays for truck data and polygon.",
+    );
+  }
+
+  // Guard to ensure polygon has at least 3 points
+  if (polygon.length < 3) {
+    throw new Error("Polygon must have at least 3 points.");
+  }
+
   // Cast the raw data to the correct types
   const polygonData: GeoPoint[] = polygon as GeoPoint[];
+
+  if (
+    polygonData.some(
+      (point) => typeof point.lat !== "number" || typeof point.lon !== "number",
+    )
+  ) {
+    throw new Error(
+      "Invalid polygon data format. Expected numbers for lat and lon.",
+    );
+  }
+
+  // Filter out invalid truck data points
+  const validTruckData = truckData.filter((point) => {
+    if (Number.isNaN(point.lat) || Number.isNaN(point.lon)) {
+      console.warn(
+        `[WARN] Invalid truck data format: expected a number for id ${point.id}`,
+      );
+      return false;
+    }
+    if (typeof point.timestamp !== "string") {
+      console.warn(
+        `[WARN] Invalid truck data format: expected a string for timestamp for id ${point.id}`,
+      );
+      return false;
+    }
+    return true;
+  });
+
   // Get the bounding box for the polygon
   const maxlat = Math.max(...polygonData.map((p) => p.lat));
   const minlat = Math.min(...polygonData.map((p) => p.lat));
@@ -34,7 +76,9 @@ const zfeEngine = (
     );
   };
 
-  const pointsInsideBoundingBox = truckData.filter(isPointInsideBoundingBox);
+  const pointsInsideBoundingBox = validTruckData.filter(
+    isPointInsideBoundingBox,
+  );
   const pointsInsidePolygon: PointsInsidePolygon = {
     inBorder: [],
     inside: [],
