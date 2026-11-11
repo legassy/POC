@@ -1,8 +1,8 @@
 import zfeEngine from "./zfeEngine.ts";
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import rawTruckData from "../../data/truck_gps.json" with { type: "json" };
-import rawPolygonData from "../../data/lyon_polygon.json" with { type: "json" };
+import rawTruckData from "../../data/zfe/truck_gps.json" with { type: "json" };
+import rawPolygonData from "../../data/zfe/lyon_polygon.json" with { type: "json" };
 
 // Data test cases
 import readJson from "../../utils/readJson.ts";
