@@ -4,7 +4,7 @@ import assert from "node:assert";
 
 const safetyPath = "src/data/test/safety";
 describe("Safety engine", () => {
-  // Silent all console log/warn/info
+  // Silence all console output (log/info/warn)
   before(() => {
     for (const method of ["log", "info", "warn"] as const) {
       mock.method(console, method, () => {});
@@ -45,7 +45,7 @@ describe("Safety engine", () => {
     );
   });
 
-  // File with non numéric value
+  // File with non-numeric values
   it("Should get a warning when there is a non numeric value", async (t) => {
     const warn = t.mock.method(console, "warn", () => {}); // mute console.warn
     await safetyEngine(`${safetyPath}/non_numeric.csv`);

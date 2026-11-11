@@ -3,7 +3,7 @@ export type TruckData = {
   timestamp: string;
   lat: number;
   lon: number;
-  expected: string;
+  expected?: string;
 };
 export interface TruckWithDistance extends TruckData {
   distanceToBorderKm: number;

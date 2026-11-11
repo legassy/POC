@@ -31,8 +31,7 @@ const zfeEngine = (
     throw new Error("Polygon must have at least 3 points.");
   }
 
-  // Cast the raw data to the correct types
-  const polygonData: GeoPoint[] = polygon as GeoPoint[];
+  const polygonData: GeoPoint[] = polygon;
 
   if (
     polygonData.some(
@@ -71,15 +70,15 @@ const zfeEngine = (
   // Get the bounding box for the polygon
   const maxlat = Math.max(...polygonData.map((p) => p.lat));
   const minlat = Math.min(...polygonData.map((p) => p.lat));
-  const maxlong = Math.max(...polygonData.map((p) => p.lon));
-  const minlong = Math.min(...polygonData.map((p) => p.lon));
+  const maxlon = Math.max(...polygonData.map((p) => p.lon));
+  const minlon = Math.min(...polygonData.map((p) => p.lon));
 
   const isPointInsideBoundingBox = (point: TruckData): boolean => {
     return (
       point.lat >= minlat &&
       point.lat <= maxlat &&
-      point.lon >= minlong &&
-      point.lon <= maxlong
+      point.lon >= minlon &&
+      point.lon <= maxlon
     );
   };
 

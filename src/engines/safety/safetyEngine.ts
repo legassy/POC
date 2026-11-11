@@ -32,25 +32,25 @@ const safetyEngine = async (link: string, threshold: number = -2.5) => {
 
         resolve(undefined);
       }
-    }).on("data", (data: SafetyData) => {
+    }).on("data", (data: Partial<Record<keyof SafetyData, string>>) => {
       // Check incomplete row data
       if (!data.timestamp || !data.acc_x || !data.acc_y || !data.acc_z) {
         console.warn("[WARN] Missing data in CSV row:", data);
         return;
       }
 
-      // Check not number value
+      // Check non-numeric values
       if (
         Number.isNaN(Number(data.acc_x)) ||
         Number.isNaN(Number(data.acc_y)) ||
         Number.isNaN(Number(data.acc_z))
       ) {
-        console.warn(`[WARN] ${data.timestamp} have incorect value`);
+        console.warn(`[WARN] ${data.timestamp} has incorrect values`);
         return;
       }
 
       // Increment row counter
-      rowCounter = rowCounter + 1;
+      rowCounter = rowCounter++;
 
       // Convert string values to numbers
       const parsedData: SafetyData = {
