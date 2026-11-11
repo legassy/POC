@@ -46,7 +46,7 @@ const zfeEngine = (
 
   // Filter out invalid truck data points
   const validTruckData = truckData.filter((point) => {
-    if (Number.isNaN(point.lat) || Number.isNaN(point.lon)) {
+    if (typeof point.lat !== "number" || typeof point.lon !== "number") {
       console.warn(
         `[WARN] Invalid truck data format: expected a number for id ${point.id}`,
       );
