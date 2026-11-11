@@ -24,7 +24,7 @@ pnpm install
 ## Lancement
 
 ```bash
-pnpm start
+pnpm start zfe or safety # Argument are needed here to run the engine
 ```
 
 ## Tests
