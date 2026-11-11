@@ -45,6 +45,7 @@ const safetyEngine = async () => {
   const dailyScore = {
     count: results.length,
     events: results,
+    unit: "m/s²",
   };
 
   // Log the filtered results
@@ -62,7 +63,10 @@ const safetyEngine = async () => {
     "src/data/safety/daily_score.json",
     JSON.stringify(dailyScore, null, 2),
   );
-  console.info(`[INFO] Daily score saved to src/data/safety/daily_score.json`);
+
+  console.info(
+    `\n[INFO] Daily score saved to src/data/safety/daily_score.json`,
+  );
 };
 
 export default safetyEngine;

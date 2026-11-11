@@ -14,30 +14,38 @@ const polygonData: GeoPoint[] = readJson(
 ) as GeoPoint[];
 
 // Run the ZFE engine
-try {
-  const zfeResult = zfeEngine(truckData, polygonData);
-  console.info("\n ============ ZFE ENGINE ============ \n");
-  console.info(`[INFO] Running ZFE Engine\n`);
+if (process.argv[2] === "zfe") {
+  try {
+    const zfeResult = zfeEngine(truckData, polygonData);
+    console.info("\n ============ ZFE ENGINE ============ \n");
+    console.info(`[INFO] Running ZFE Engine\n`);
 
-  // Log alerts
-  zfeResult.inside.forEach((point) => {
-    console.log(
-      `[ALERT ZFE] ${point.timestamp}: dans la zone ZFE (lat: ${point.lat}, lon: ${point.lon})`,
+    // Log alerts
+    zfeResult.inside.forEach((point) => {
+      console.log(
+        `[ALERT ZFE] ${point.timestamp}: dans la zone ZFE (lat: ${point.lat}, lon: ${point.lon})`,
+      );
+    });
+
+    console.log(`\n[INFO] ZFE engine completed`);
+  } catch (error) {
+    console.error(
+      `[ERROR] Failed to run ZFE engine: ${(error as Error).message}`,
     );
-  });
-
-  console.log(`\n[INFO] ZFE engine completed`);
-} catch (error) {
-  console.error(
-    `[ERROR] Failed to run ZFE engine: ${(error as Error).message}`,
-  );
+  }
+  console.info("\n ==================================== \n ");
 }
 
 // Run the Safety engine
+else if (process.argv[2] === "safety") {
+  console.info("\n ============ SAFETY ENGINE ============ \n");
+  console.info(`[INFO] Running Safety Engine\n`);
 
-console.info("\n ============ SAFETY ENGINE ============ \n");
-console.info(`[INFO] Running Safety Engine\n`);
-
-await safetyEngine();
-console.info(`\n[INFO] Safety engine completed`);
-console.info("\n ==================================== \n ");
+  await safetyEngine();
+  console.info(`\n[INFO] Safety engine completed`);
+  console.info("\n ==================================== \n ");
+} else {
+  console.error(
+    `[ERROR] Invalid argument. Please provide either "zfe" or "safety" as an argument.`,
+  );
+}
