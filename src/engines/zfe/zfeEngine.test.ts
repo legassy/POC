@@ -58,12 +58,12 @@ describe("ZFE Engine", () => {
     );
   });
 
-  // test polyon with invalid values
+  // test polygon with invalid values
   it("should throw an error when polygon has invalid values", () => {
     const invalidPolygon = [
       { lat: 45.75, lon: 4.85 },
       { lat: 45.76, lon: 4.86 },
-      { lat: 45.77, lon: "invalid" }, // lon must  be a number
+      { lat: 45.77, lon: "invalid" }, // lon must be a number
     ] as unknown as GeoPoint[];
     assert.throws(
       () => zfeEngine(rawTruckData, invalidPolygon),

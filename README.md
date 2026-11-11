@@ -24,7 +24,9 @@ pnpm install
 ## Lancement
 
 ```bash
-pnpm start zfe or safety # Argument are needed here to run the engine
+pnpm start               # Run all engines
+pnpm start zfe           # Run the ZFE engine only
+pnpm start safety        # Run the Safety engine only
 ```
 
 ## Tests
@@ -36,14 +38,22 @@ pnpm typecheck     # vérification des types
 
 ## Structure du projet
 
-```
+```text
 src/
-├── index.ts              # point d'entrée
-├── data/                 # données d'entrée (mock)
+├── index.ts                    # point d'entrée (argument : zfe | safety)
 ├── engines/
-│   └── zfe/              # module 1 : détection ZFE
-├── types/                # types partagés
-└── utils/                # lecture de fichiers
+│   ├── zfe/                    # module 1 : détection ZFE (+ tests)
+│   └── safety/                 # module 2 : détection des freinages (+ tests)
+├── data/
+│   ├── zfe/                    # polygone ZFE et trace GPS
+│   ├── safety/                 # données accéléromètre
+│   │   └── output/             # daily_score.json (généré)
+│   └── test/                   # fichiers volontairement cassés
+│       ├── zfe/
+│       └── safety/
+├── types/                      # types partagés
+├── utils/                      # lecture de fichiers
+└── assets/                     # images du README
 ```
 
 ## Module 1 — ZFE
@@ -58,7 +68,7 @@ Convention : **lon = x, lat = y**.
 
 **Bounding box**
 
-Pour éviter les calculs inutiles dans le code, j'ai commencé par filtrer les points qui sont uniquement dans la bounding box, grâce aux min et max des abscisses et des ordonnées.
+Pour éviter les calculs inutiles dans le code, j'ai commencé par ne garder que les points situés dans la bounding box, grâce aux min et max des abscisses et des ordonnées.
 Les points qui ne sont pas dans la bounding box sont directement ignorés.
 Je ne calcule qu'une seule fois la bounding box au lancement du moteur ZFE.
 
@@ -86,3 +96,65 @@ Plusieurs cas sont pris en compte :
 - fichier vide
 
 ## Module 2 — Safety
+
+Détection des freinages violents pour le bonus assurance.
+
+**Lecture**
+
+Le fichier CSV est lu en flux (stream), ligne par ligne, en un seul passage : la complexité est donc en O(n).
+Seuls les événements filtrés sont conservés en mémoire, pas l'ensemble du fichier.
+
+**Filtrage**
+
+Le filtrage porte sur l'axe Y, car c'est l'axe longitudinal (avant/arrière).
+Une valeur est retenue lorsque la décélération dépasse le seuil de 2,5 m/s², c'est-à-dire lorsque `acc_y < -2.5`.
+Dans l'énoncé, le seuil de détection est de 2,5 G, sauf que 2,5 G ≈ 24,5 m/s², ce qui ne déclencherait aucun événement : je suis donc parti sur 2,5 m/s².
+
+**Daily score**
+
+J'ai pris la date du premier événement comme date de référence de la journée.
+J'ai ensuite ajouté d'autres informations qui me semblent utiles : l'unité, le seuil, un compteur, les événements et le score.
+
+Le score est calculé avec la formule suivante : `100 - (nombre d'événements × 5)`, avec un minimum de 0.
+J'ai choisi la valeur 5 pour accepter 10 fautes maximum : au-delà de 10 fautes, le score tombe sous 50, c'est-à-dire sous la moyenne d'un score sur 100. Cette valeur de `5` peut être ajustée selon le nombre de freinages violents tolérés.
+
+Format choisi :
+
+```jsonc
+{
+  "date": "2023-03-15", // date de la journée analysée
+  "count": 1, // nombre d'événements
+  "unit": "m/s²", // unité des mesures
+  "threshold": -2.5, // seuil utilisé
+  "events": [
+    // événements détectés
+    {
+      "timestamp": 1678880005,
+      "acc_x": 0.25,
+      "acc_y": -3.45,
+      "acc_z": 9.65,
+    },
+  ],
+  "score": 95, // score journalier
+}
+```
+
+**Fichiers**
+
+```text
+src/data/safety/
+├── accelerometer_data.csv      # fichier lu (entrée)
+└── output/
+    └── daily_score.json        # fichier exporté (sortie)
+```
+
+**Bibliothèques utilisées**
+
+- [`dayjs`](https://www.npmjs.com/package/dayjs) : conversion du timestamp Unix en date lisible pour les logs
+- [`csv-parser`](https://www.npmjs.com/package/csv-parser) : lecture et découpage (parsing) du CSV ligne par ligne, en flux
+
+**Résultat attendu :**
+
+```
+[ALERT SAFETY] 2023-03-15 12:33: Harsh braking detected (acc_y: -3.45)
+```

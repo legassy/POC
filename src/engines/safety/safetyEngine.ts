@@ -5,25 +5,29 @@ import dayjs from "dayjs";
 
 import type { SafetyData } from "../../types/SafetyType.ts";
 
-const safetyEngine = async () => {
+/**
+ * Safety Engine
+ * Filters the accelerometer data to find harsh braking events and calculates a daily score based on the number of events.
+ *
+ * @param link data location
+ * @param threshold threshold of harsh braking
+ *
+ * @returns a JSON file with the daily score and the harsh braking events
+ */
+const safetyEngine = async (link: string, threshold: number = -2.5) => {
   const results: SafetyData[] = [];
 
   // Read the CSV file and parse it
   await new Promise((resolve, reject) => {
-    console.info("[INFO] Reading accelerometer_data.csv file...");
-    pipeline(
-      fs.createReadStream("src/data/safety/accelerometer_data.csv"),
-      csv(),
-      (err: Error | null) => {
-        if (err) {
-          console.error("Error reading CSV file:", err);
-          reject(err);
-        } else {
-          console.log("\n CSV file successfully processed. \n");
-          resolve(undefined);
-        }
-      },
-    ).on("data", (data: SafetyData) => {
+    console.info("[INFO] Reading accelerometer_data.csv file...\n");
+    pipeline(fs.createReadStream(link), csv(), (err: Error | null) => {
+      if (err) {
+        console.error("Error reading CSV file:", err);
+        reject(err);
+      } else {
+        resolve(undefined);
+      }
+    }).on("data", (data: SafetyData) => {
       if (!data.timestamp || !data.acc_x || !data.acc_y || !data.acc_z) {
         console.warn("[WARN] Missing data in CSV row:", data);
         return;
@@ -36,36 +40,40 @@ const safetyEngine = async () => {
         acc_z: Number(data.acc_z),
       };
 
-      if (parsedData.acc_y < -2.5) {
+      if (parsedData.acc_y < threshold) {
         results.push(parsedData);
       }
     });
   });
 
+  const dataDate = dayjs.unix(results[0]?.timestamp).format("YYYY-MM-DD");
+
   const dailyScore = {
+    date: dataDate,
     count: results.length,
-    events: results,
     unit: "m/s²",
+    threshold: threshold,
+    events: results,
+
+    // 100 - (harsh braking events * 5) with a minimum score of 0
+    score: 100 - results.length * 5 < 0 ? 0 : 100 - results.length * 5,
   };
 
-  // Log the filtered results
-  console.info(
-    `[INFO] Found ${results.length} instances of harsh braking (acc_y < -2.5) \n`,
-  );
+  // Log the results
   results.forEach((data) => {
     console.log(
       `[ALERT SAFETY] ${dayjs.unix(data.timestamp).format("YYYY-MM-DD HH:mm")}: Harsh braking detected (acc_y: ${data.acc_y})`,
     );
   });
 
-  // Creat a new JSON file with the filtered results
+  // Create a new JSON file with the filtered results
   fs.writeFileSync(
-    "src/data/safety/daily_score.json",
+    "src/data/safety/output/daily_score.json",
     JSON.stringify(dailyScore, null, 2),
   );
 
   console.info(
-    `\n[INFO] Daily score saved to src/data/safety/daily_score.json`,
+    `\n[INFO] Daily score saved to src/data/safety/output/daily_score.json`,
   );
 };
 
