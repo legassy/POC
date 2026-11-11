@@ -50,7 +50,7 @@ const safetyEngine = async (link: string, threshold: number = -2.5) => {
       }
 
       // Increment row counter
-      rowCounter = rowCounter++;
+      rowCounter++;
 
       // Convert string values to numbers
       const parsedData: SafetyData = {
@@ -86,8 +86,8 @@ const safetyEngine = async (link: string, threshold: number = -2.5) => {
     );
   });
 
-  // Create dossier
-  fs.mkdirSync("output", {
+  // Create folder
+  fs.mkdirSync("src/data/safety/output/", {
     recursive: true,
   });
 
