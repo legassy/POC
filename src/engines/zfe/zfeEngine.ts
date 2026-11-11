@@ -8,7 +8,7 @@ import type {
  * ZFE Engine that checks which truck data points are inside a given polygon.
  * @param truckData Array of truck data points to be checked.
  * @param polygon Array of GeoPoints that define the polygon.
- * @returns   Points inside the polygon and on the border of the polygon.
+ * @returns   Points inside the polygon, and points inside the bounding box but outside the polygon.
  */
 const zfeEngine = (
   truckData?: TruckData[],
@@ -46,6 +46,13 @@ const zfeEngine = (
 
   // Filter out invalid truck data points
   const validTruckData = truckData.filter((point) => {
+    // A null or non-object entry must be skipped, not crash the whole run
+    if (typeof point !== "object" || point === null) {
+      console.warn(
+        `[WARN] Invalid truck data format: expected an object, got ${JSON.stringify(point)}`,
+      );
+      return false;
+    }
     if (typeof point.lat !== "number" || typeof point.lon !== "number") {
       console.warn(
         `[WARN] Invalid truck data format: expected a number for id ${point.id}`,
@@ -80,7 +87,7 @@ const zfeEngine = (
     isPointInsideBoundingBox,
   );
   const pointsInsidePolygon: PointsInsidePolygon = {
-    inBorder: [],
+    outside: [],
     inside: [],
   };
 
@@ -107,12 +114,12 @@ const zfeEngine = (
     return inside;
   };
 
-  // Check which points are inside the polygon and which are on the border
+  // Check which points are inside the polygon and which are only in the bounding box
   pointsInsideBoundingBox.forEach((point) => {
     if (isPointInsidePolygon(point)) {
       pointsInsidePolygon.inside.push(point);
     } else {
-      pointsInsidePolygon.inBorder.push(point);
+      pointsInsidePolygon.outside.push(point);
     }
   });
 

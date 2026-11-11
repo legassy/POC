@@ -14,18 +14,16 @@ describe("ZFE Engine", () => {
     const result = zfeEngine(rawTruckData, rawPolygonData);
 
     const insideIds = result.inside.map((point) => point.id);
-    const inBorderIds = result.inBorder.map((point) => point.id);
+    const outsideIds = result.outside.map((point) => point.id);
 
     assert(
       result.inside.length === 2,
       `Expected 2 points inside, got ${result.inside.length}`,
     );
 
-    assert(
-      result.inBorder.length === 1,
-      `Expected 1 point on the border, got ${result.inBorder.length}`,
-    );
-    assert(inBorderIds.includes(3), "Point with id 3 should be on the border");
+    // Point 3 is in the bounding box, but the ray casting puts it outside:
+    // at lat 45.785 the north edge is at lon 4.83, the point is at lon 4.805
+    assert.deepEqual(outsideIds, [3], "Point with id 3 should be outside");
     assert(insideIds.includes(4), "Point with id 4 should be inside");
     assert(insideIds.includes(5), "Point with id 5 should be inside");
   });
@@ -36,6 +34,29 @@ describe("ZFE Engine", () => {
       () => zfeEngine(),
       Error,
       "Expected an error to be thrown when no data is provided",
+    );
+  });
+
+  // test case with data that are not arrays
+  it("should throw an error when data are not arrays", () => {
+    assert.throws(
+      () =>
+        zfeEngine({} as unknown as TruckData[], {} as unknown as GeoPoint[]),
+      /Expected arrays/,
+    );
+  });
+
+  // test case with a null truck point: skipped with a warning, the run continues
+  it("should skip a null truck point without crashing", (t) => {
+    const warn = t.mock.method(console, "warn", () => {});
+    const truckData = [null, ...rawTruckData] as unknown as TruckData[];
+
+    const result = zfeEngine(truckData, rawPolygonData);
+
+    assert.equal(warn.mock.callCount(), 1);
+    assert.deepEqual(
+      result.inside.map((p) => p.id),
+      [4, 5],
     );
   });
 

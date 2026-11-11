@@ -9,7 +9,8 @@ export interface TruckWithDistance extends TruckData {
   distanceToBorderKm: number;
 }
 export type PointsInsidePolygon = {
-  inBorder: TruckData[];
+  // Inside the bounding box but outside the polygon (rejected by ray casting)
+  outside: TruckData[];
   inside: TruckData[];
 };
 
