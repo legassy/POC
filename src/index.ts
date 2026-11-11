@@ -13,8 +13,9 @@ const polygonData: GeoPoint[] = readJson(
   "src/data/zfe/lyon_polygon.json",
 ) as GeoPoint[];
 
-// Run the ZFE engine
-if (process.argv[2] === "zfe") {
+const safetyData = "src/data/safety/accelerometer_data.csv";
+
+const runZfeEngine = () => {
   try {
     const zfeResult = zfeEngine(truckData, polygonData);
     console.info("\n ============ ZFE ENGINE ============ \n");
@@ -34,18 +35,34 @@ if (process.argv[2] === "zfe") {
     );
   }
   console.info("\n ==================================== \n ");
+};
+
+const runSafetyEngine = async () => {
+  console.info("\n ============ SAFETY ENGINE ============ \n");
+  console.info(`[INFO] Running Safety Engine\n`);
+
+  try {
+    await safetyEngine(safetyData);
+  } catch (error) {
+    console.error(
+      `[ERROR] Failed to run Safety engine: ${(error as Error).message}`,
+    );
+  }
+
+  console.info(`\n[INFO] Safety engine completed`);
+  console.info("\n ==================================== \n ");
+};
+
+// Run the ZFE engine
+if (process.argv[2] === "zfe") {
+  runZfeEngine();
 }
 
 // Run the Safety engine
 else if (process.argv[2] === "safety") {
-  console.info("\n ============ SAFETY ENGINE ============ \n");
-  console.info(`[INFO] Running Safety Engine\n`);
-
-  await safetyEngine();
-  console.info(`\n[INFO] Safety engine completed`);
-  console.info("\n ==================================== \n ");
+  runSafetyEngine();
 } else {
-  console.error(
-    `[ERROR] Invalid argument. Please provide either "zfe" or "safety" as an argument.`,
-  );
+  console.info("[INFO] No argument provided, running all engines");
+  runZfeEngine();
+  runSafetyEngine();
 }

@@ -16,6 +16,7 @@ import type { SafetyData } from "../../types/SafetyType.ts";
  */
 const safetyEngine = async (link: string, threshold: number = -2.5) => {
   const results: SafetyData[] = [];
+  let rowCounter: number = 0;
 
   // Read the CSV file and parse it
   await new Promise((resolve, reject) => {
@@ -25,13 +26,32 @@ const safetyEngine = async (link: string, threshold: number = -2.5) => {
         console.error("Error reading CSV file:", err);
         reject(err);
       } else {
+        if (rowCounter === 0) {
+          reject(new Error("[Error] Empty file"));
+        }
+
         resolve(undefined);
       }
     }).on("data", (data: SafetyData) => {
+      // Check incomplete row data
       if (!data.timestamp || !data.acc_x || !data.acc_y || !data.acc_z) {
         console.warn("[WARN] Missing data in CSV row:", data);
         return;
       }
+
+      // Check not number value
+      if (
+        Number.isNaN(Number(data.acc_x)) ||
+        Number.isNaN(Number(data.acc_y)) ||
+        Number.isNaN(Number(data.acc_z))
+      ) {
+        console.warn(`[WARN] ${data.timestamp} have incorect value`);
+        return;
+      }
+
+      // Increment row counter
+      rowCounter = rowCounter + 1;
+
       // Convert string values to numbers
       const parsedData: SafetyData = {
         timestamp: Number(data.timestamp),
@@ -75,6 +95,7 @@ const safetyEngine = async (link: string, threshold: number = -2.5) => {
   console.info(
     `\n[INFO] Daily score saved to src/data/safety/output/daily_score.json`,
   );
+  return dailyScore;
 };
 
 export default safetyEngine;
