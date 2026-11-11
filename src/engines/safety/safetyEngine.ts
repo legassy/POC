@@ -86,6 +86,11 @@ const safetyEngine = async (link: string, threshold: number = -2.5) => {
     );
   });
 
+  // Create dossier
+  fs.mkdirSync("output", {
+    recursive: true,
+  });
+
   // Create a new JSON file with the filtered results
   fs.writeFileSync(
     "src/data/safety/output/daily_score.json",

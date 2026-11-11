@@ -1,7 +1,7 @@
 {
   "name": "POC",
   "version": "1.0.0",
-  "description": "",
+  "description": "POC moteur ZFE et Safety",
   "type": "module",
   "main": "src/index.ts",
   "scripts": {
