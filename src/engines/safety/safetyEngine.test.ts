@@ -37,12 +37,20 @@ describe("Safety engine", () => {
     );
   });
 
+  // CSV with only the header line
+  it("Should reject a CSV with only a header", async () => {
+    await assert.rejects(
+      async () => await safetyEngine(`${safetyPath}/header_only.csv`),
+      /Empty file/,
+    );
+  });
+
   // File with non numéric value
   it("Should get a warning when there is a non numeric value", async (t) => {
     const warn = t.mock.method(console, "warn", () => {}); // mute console.warn
     await safetyEngine(`${safetyPath}/non_numeric.csv`);
 
-    assert.ok(warn.mock.callCount() > 0); // at least called once
+    assert.equal(warn.mock.callCount(), 2);
   });
 
   // File with incomplete field
@@ -51,6 +59,6 @@ describe("Safety engine", () => {
 
     await safetyEngine(`${safetyPath}/incomplete_row.csv`);
 
-    assert.ok(warn.mock.callCount() > 0); // at least called once
+    assert.equal(warn.mock.callCount(), 2);
   });
 });
