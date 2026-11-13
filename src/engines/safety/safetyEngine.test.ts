@@ -61,4 +61,26 @@ describe("Safety engine", () => {
 
     assert.equal(warn.mock.callCount(), 2);
   });
+
+  // Valid file without any harsh braking
+  it("Should return a perfect score when there is no harsh braking", async () => {
+    const result = await safetyEngine(`${safetyPath}/no_braking.csv`);
+
+    assert.deepEqual(result, {
+      date: "2023-03-15",
+      count: 0,
+      unit: "m/s²",
+      threshold: -2.5,
+      events: [],
+      score: 100,
+    });
+  });
+
+  // More than 20 events: the score stops at 0
+  it("Should never return a score below 0", async () => {
+    const result = await safetyEngine(`${safetyPath}/many_braking.csv`);
+
+    assert.equal(result.count, 22);
+    assert.equal(result.score, 0);
+  });
 });

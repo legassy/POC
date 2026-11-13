@@ -17,6 +17,8 @@ import type { SafetyData } from "../../types/SafetyType.ts";
 const safetyEngine = async (link: string, threshold: number = -2.5) => {
   const results: SafetyData[] = [];
   let rowCounter: number = 0;
+  // Timestamp of the first valid row: gives the date of the day, even without any event
+  let firstTimestamp: number | undefined;
 
   // Read the CSV file and parse it
   await new Promise((resolve, reject) => {
@@ -60,13 +62,16 @@ const safetyEngine = async (link: string, threshold: number = -2.5) => {
         acc_z: Number(data.acc_z),
       };
 
+      firstTimestamp ??= parsedData.timestamp;
+
       if (parsedData.acc_y < threshold) {
         results.push(parsedData);
       }
     });
   });
 
-  const dataDate = dayjs.unix(results[0]?.timestamp).format("YYYY-MM-DD");
+  // At least one valid row was read here (otherwise the promise was rejected above)
+  const dataDate = dayjs.unix(firstTimestamp!).format("YYYY-MM-DD");
 
   const dailyScore = {
     date: dataDate,
