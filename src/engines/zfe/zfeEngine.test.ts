@@ -28,6 +28,22 @@ describe("ZFE Engine", () => {
     assert(insideIds.includes(5), "Point with id 5 should be inside");
   });
 
+  // Compare the engine result with the expected value of each point
+  // Point 3 is the only known mismatch (see README, le cas du point 3)
+  it("should match the expected value of each point, except point 3", () => {
+    const result = zfeEngine(rawTruckData, rawPolygonData);
+    const insideIds = new Set(result.inside.map((point) => point.id));
+
+    const mismatches = (rawTruckData as TruckData[])
+      .filter((point) => point.expected)
+      .filter(
+        (point) => point.expected!.startsWith("IN") !== insideIds.has(point.id),
+      )
+      .map((point) => point.id);
+
+    assert.deepEqual(mismatches, [3], "Only point 3 should differ from expected");
+  });
+
   // test case with empty data
   it("should throw an error when no data is provided", () => {
     assert.throws(

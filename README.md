@@ -24,9 +24,10 @@ pnpm install
 ## Lancement
 
 ```bash
-pnpm start               # Run all engines
-pnpm start zfe           # Run the ZFE engine only
-pnpm start safety        # Run the Safety engine only
+pnpm start               # lance tous les moteurs
+pnpm start zfe           # lance uniquement le moteur ZFE
+pnpm start safety        # lance uniquement le moteur Safety
+pnpm dev                 # mode watch (relance à chaque modification)
 ```
 
 ## Tests
@@ -85,13 +86,20 @@ Si le nombre est pair, le camion est considéré comme extérieur au polygone. �
 [ALERT ZFE] 08:00:40: dans la zone ZFE (lat: 45.75, lon: 4.85)
 ```
 
+**Le cas du point 3**
+
+Le jeu de données indique `"expected": "IN (Bordure)"` pour le point 3 (lat: 45.785, lon: 4.805) mais le moteur le classe à l'extérieur et c'est volontaire.
+Je n'ai pas introduit de notion de « bordure »pour cette premiere version,un point est soit dans la zone, soit en dehors.
+Un test unitaire compare le résultat du moteur à la valeur `expected` de chaque point et vérifie que le point 3 est le seul écart.
+
 **Tests de robustesse**
 
 Plusieurs cas sont pris en compte :
 
 - fichier JSON malformé (exemple : il manque un crochet fermant à la liste)
 - un polygone de moins de 3 points n'est pas un polygone
-- la latitude et la longitude sont obligatoirement des nombres (`number`)
+- la latitude et la longitude sont obligatoirement des nombres (`number`) : un polygone invalide lève une erreur, un point GPS invalide est ignoré et les autres points sont traités
+- un point GPS `null` est ignoré avec un avertissement, sans arrêter le traitement
 - le cas où les données du polygone et du camion ne sont pas fournies
 - fichier vide
 
@@ -108,11 +116,11 @@ Seuls les événements filtrés sont conservés en mémoire, pas l'ensemble du f
 
 Le filtrage porte sur l'axe Y, car c'est l'axe longitudinal (avant/arrière).
 Une valeur est retenue lorsque la décélération dépasse le seuil de 2,5 m/s², c'est-à-dire lorsque `acc_y < -2.5`.
-Dans l'énoncé, le seuil de détection est de 2,5 G, sauf que 2,5 G ≈ 24,5 m/s², ce qui ne déclencherait aucun événement : je suis donc parti sur 2,5 m/s².
+Dans l'énoncé, le seuil de détection est de 2,5 G, or 2,5 G ≈ 24,5 m/s², ce qui ne déclencherait aucun événement : je suis donc parti sur 2,5 m/s².
 
 **Daily score**
 
-J'ai pris la date du premier événement comme date de référence de la journée.
+J'ai pris la date de la première ligne valide du fichier comme date de référence de la journée ce qui permet d'avoir une date même quand aucun freinage n'est détecté.
 J'ai ensuite ajouté d'autres informations qui me semblent utiles : l'unité, le seuil, un compteur, les événements et le score.
 
 Le score est calculé avec la formule suivante : `100 - (nombre d'événements × 5)`, avec un minimum de 0.
@@ -147,6 +155,17 @@ src/data/safety/
 └── output/
     └── daily_score.json        # fichier exporté (sortie)
 ```
+
+**Tests de robustesse**
+
+Plusieurs cas sont pris en compte (fichiers dans `src/data/test/safety/`) :
+
+- fichier vide : erreur
+- fichier qui ne contient que l'en-tête : erreur
+- valeur non numérique : la ligne est ignorée avec un avertissement
+- ligne incomplète : la ligne est ignorée avec un avertissement
+- aucun freinage violent : score parfait de 100
+- nombreux freinages : le score ne descend jamais sous 0
 
 **Bibliothèques utilisées**
 
